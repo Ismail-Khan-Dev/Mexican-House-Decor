@@ -293,6 +293,28 @@ export interface Order {
   updatedAt: string
 }
 
+/**
+ * Payment Service
+ */
+export const paymentService = {
+  initiateJazzCash: (orderId: string) =>
+    api.post('/payment/jazzcash/initiate', { orderId }),
+
+  getStatus: (params: { transactionRef?: string; orderId?: string }) =>
+    api.get('/payment/status', { params }),
+}
+
+export interface Payment {
+  _id: string
+  transactionRef: string
+  amount: number
+  currency: string
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+  gateway: string
+  paidAt?: string
+  createdAt: string
+}
+
 export interface ApiResponse<T> {
   success: boolean
   message?: string

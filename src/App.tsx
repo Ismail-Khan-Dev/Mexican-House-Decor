@@ -14,6 +14,7 @@ import { CartPage } from './pages/CartPage'
 import { CheckoutPage } from './pages/CheckoutPage'
 import { LoginPage } from './pages/LoginPage'
 import { OrdersPage } from './pages/OrdersPage'
+import { PaymentStatusPage } from './pages/PaymentStatusPage'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -59,6 +60,8 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<OrdersPage />} />
+          <Route path="/payment/status" element={<PaymentStatusPage />} />
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/lookbooks" element={<LookbooksPage />} />
           <Route path="/about" element={<AboutPage />} />

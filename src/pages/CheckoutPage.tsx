@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { orderService } from '../services/api'
+import { orderService, paymentService } from '../services/api'
 import { BlurReveal } from '../components/BlurReveal'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
@@ -38,6 +38,7 @@ export function CheckoutPage() {
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
   })
+  const [paymentMethod, setPaymentMethod] = useState<'jazzcash' | 'cod'>('jazzcash')
   const [loading, setLoading] = useState(false)
 
   const shipping = subtotal > 100 ? 0 : 10
@@ -140,17 +141,39 @@ export function CheckoutPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await orderService.create({
+      const orderRes = await orderService.create({
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
         })),
         shippingAddress: address,
-        paymentMethod: 'cod',
+        paymentMethod,
       })
-      toast.success('Order placed successfully!')
-      clearCart()
-      navigate('/orders')
+
+      const order = orderRes.data.data
+
+      if (paymentMethod === 'jazzcash') {
+        const payRes = await paymentService.initiateJazzCash(order._id)
+        const { redirectUrl, formFields } = payRes.data.data
+
+        const form = document.createElement('form')
+        form.method = 'POST'
+        form.action = redirectUrl
+        form.style.display = 'none'
+        Object.entries(formFields).forEach(([key, value]) => {
+          const input = document.createElement('input')
+          input.type = 'hidden'
+          input.name = key
+          input.value = value as string
+          form.appendChild(input)
+        })
+        document.body.appendChild(form)
+        form.submit()
+      } else {
+        clearCart()
+        toast.success('Order placed successfully!')
+        navigate('/orders')
+      }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to place order')
     } finally {
@@ -327,22 +350,93 @@ export function CheckoutPage() {
             </div>
 
             <div
-              className="text-label"
               style={{
                 marginTop: '12px',
-                padding: '8px 12px',
+                padding: '12px',
                 backgroundColor: 'var(--light-sand)',
                 borderRadius: '4px',
-                color: 'var(--warm-gray)',
-                fontSize: '11px',
               }}
             >
-              <p style={{ margin: 0 }}>Payment: Cash on Delivery</p>
-              <p style={{ margin: '4px 0 0' }}>
-                {shipping === 0
-                  ? 'Free shipping on orders over $100'
-                  : 'Shipping calculated at checkout'}
+              <p
+                className="text-body-sm"
+                style={{ fontWeight: 600, color: 'var(--deep-espresso)', marginBottom: '8px' }}
+              >
+                Payment Method
               </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 10px',
+                    borderRadius: '4px',
+                    backgroundColor: paymentMethod === 'jazzcash' ? 'var(--white)' : 'transparent',
+                    border: `1px solid ${paymentMethod === 'jazzcash' ? 'var(--terracotta)' : 'transparent'}`,
+                    cursor: 'pointer',
+                    transition: 'all 150ms',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="jazzcash"
+                    checked={paymentMethod === 'jazzcash'}
+                    onChange={() => setPaymentMethod('jazzcash')}
+                    style={{ accentColor: 'var(--terracotta)' }}
+                  />
+                  <div>
+                    <span
+                      className="text-body-sm"
+                      style={{ fontWeight: 500, color: 'var(--deep-espresso)' }}
+                    >
+                      JazzCash
+                    </span>
+                    <p
+                      className="text-label"
+                      style={{ margin: 0, color: 'var(--warm-gray)', fontSize: '10px' }}
+                    >
+                      Pay via JazzCash wallet or card
+                    </p>
+                  </div>
+                </label>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 10px',
+                    borderRadius: '4px',
+                    backgroundColor: paymentMethod === 'cod' ? 'var(--white)' : 'transparent',
+                    border: `1px solid ${paymentMethod === 'cod' ? 'var(--terracotta)' : 'transparent'}`,
+                    cursor: 'pointer',
+                    transition: 'all 150ms',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === 'cod'}
+                    onChange={() => setPaymentMethod('cod')}
+                    style={{ accentColor: 'var(--terracotta)' }}
+                  />
+                  <div>
+                    <span
+                      className="text-body-sm"
+                      style={{ fontWeight: 500, color: 'var(--deep-espresso)' }}
+                    >
+                      Cash on Delivery
+                    </span>
+                    <p
+                      className="text-label"
+                      style={{ margin: 0, color: 'var(--warm-gray)', fontSize: '10px' }}
+                    >
+                      Pay when you receive your order
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
 
             <button
