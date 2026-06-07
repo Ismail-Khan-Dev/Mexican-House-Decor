@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Search, Menu, X, ShoppingBag } from 'lucide-react'
+import { Search, Menu, X, ShoppingBag, Shield } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 const navLinks = [
   { label: 'Inspiration', href: '/inspiration' },
@@ -13,6 +14,7 @@ const navLinks = [
 
 export function Navigation() {
   const { itemCount } = useCart()
+  const { user } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
@@ -103,6 +105,30 @@ export function Navigation() {
 
           {/* Right icons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                data-cursor-hover
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: '4px',
+                  color: 'var(--deep-espresso)',
+                  opacity: 0.7,
+                  transition: 'opacity 200ms',
+                  textDecoration: 'none',
+                  lineHeight: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.7' }}
+              >
+                <Shield size={18} />
+                <span className="text-label" style={{ fontSize: '11px' }}>Admin</span>
+              </Link>
+            )}
             <Link
               to="/cart"
               data-cursor-hover

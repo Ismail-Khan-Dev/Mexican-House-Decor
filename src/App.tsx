@@ -15,6 +15,11 @@ import { CheckoutPage } from './pages/CheckoutPage'
 import { LoginPage } from './pages/LoginPage'
 import { OrdersPage } from './pages/OrdersPage'
 import { PaymentStatusPage } from './pages/PaymentStatusPage'
+import { AdminLayout } from './pages/admin/AdminLayout'
+import { AdminOverview } from './pages/admin/AdminOverview'
+import { AdminProducts } from './pages/admin/AdminProducts'
+import { AdminOrders } from './pages/admin/AdminOrders'
+import { AdminUsers } from './pages/admin/AdminUsers'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -62,6 +67,10 @@ function App() {
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:id" element={<OrdersPage />} />
           <Route path="/payment/status" element={<PaymentStatusPage />} />
+          <Route path="/admin" element={<AdminLayout><AdminOverview /></AdminLayout>} />
+          <Route path="/admin/products" element={<AdminLayout><AdminProducts /></AdminLayout>} />
+          <Route path="/admin/orders" element={<AdminLayout><AdminOrders /></AdminLayout>} />
+          <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/lookbooks" element={<LookbooksPage />} />
           <Route path="/about" element={<AboutPage />} />

@@ -1,6 +1,8 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const User = require('../models/User');
 const logger = require('../utils/logger');
+const emailService = require('../services/email');
 
 /**
  * Create new order
@@ -58,6 +60,8 @@ exports.createOrder = async (req, res, next) => {
     });
 
     logger.info(`Order created: ${order.orderNumber} by user ${req.user.userId}`);
+
+    emailService.sendOrderConfirmation(order, req.user);
 
     res.status(201).json({
       success: true,
@@ -160,6 +164,11 @@ exports.updateOrderStatus = async (req, res, next) => {
     }
 
     logger.info(`Order status updated: ${order.orderNumber} - ${status}`);
+
+    if (status === 'shipped') {
+      const user = await User.findById(order.userId);
+      if (user) emailService.sendShippingUpdate(order, user);
+    }
 
     res.status(200).json({
       success: true,

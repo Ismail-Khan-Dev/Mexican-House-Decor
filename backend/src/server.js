@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const { connectDatabase } = require('./config/database');
 const logger = require('./utils/logger');
 const { errorHandler } = require('./middleware/errorHandler');
@@ -12,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payment');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -23,6 +25,28 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
 }));
+
+/**
+ * Rate limiting
+ */
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  message: { success: false, message: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/auth', authLimiter);
+app.use('/api', apiLimiter);
 
 /**
  * Body parser middleware
@@ -53,6 +77,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/admin', adminRoutes);
 
 /**
  * 404 handler
