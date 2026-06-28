@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mexican-decor-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: mexican-decor-db
+
+  backend:
+    build: ./backend
+    container_name: mexican-decor-api
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://mongodb:27017/mexican-decor-db
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production_32_chars_min}
+      JAZZCASH_ENVIRONMENT: ${JAZZCASH_ENVIRONMENT:-sandbox}
+      JAZZCASH_MERCHANT_ID: ${JAZZCASH_MERCHANT_ID}
+      JAZZCASH_PASSWORD: ${JAZZCASH_PASSWORD}
+      JAZZCASH_INTEGRITY_SALT: ${JAZZCASH_INTEGRITY_SALT}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo-data:

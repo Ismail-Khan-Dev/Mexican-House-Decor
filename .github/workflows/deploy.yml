@@ -1,0 +1,71 @@
+name: CI/CD — Mexican House Decor
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+
+  backend-test:
+    name: Backend Smoke Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: node -e "
+          require('./src/utils/logger');
+          require('./src/config/database');
+          require('./src/middleware/auth');
+          require('./src/models/Payment');
+          require('./src/services/jazzcash');
+          require('./src/controllers/paymentController');
+          require('./src/routes/payment');
+          console.log('All modules load OK');
+        "
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: [lint-and-typecheck, backend-test, build-frontend]
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "✅ All checks passed — ready for deployment"
+      - run: echo "   Frontend → Vercel / Railway / your hosting"
+      - run: echo "   Backend  → docker compose up -d"
