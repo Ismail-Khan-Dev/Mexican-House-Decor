@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { BlurReveal } from '../components/BlurReveal'
 import { Heart, ShoppingBag, Star, Filter } from 'lucide-react'
 import { productService, type Product } from '../services/api'
@@ -16,7 +15,6 @@ const categories = [
 ]
 
 export function ShopPage() {
-  const navigate = useNavigate()
   const { addItem } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)

@@ -248,12 +248,13 @@ export interface Product {
   description: string
   price: number
   originalPrice?: number
-  category: 'Textiles' | 'Ceramics' | 'Furniture' | 'Lighting' | 'Decor'
+  category: 'Textiles' | 'Ceramics' | 'Furniture' | 'Lighting' | 'Wall Decor'
   images: Array<{ url: string; alt: string }>
   thumbnail: string
   rating: number
   reviews: number
   stock: number
+  sku?: string
   materials?: string[]
   artisan?: string
   origin?: string
